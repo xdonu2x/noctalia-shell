@@ -253,6 +253,21 @@ Singleton {
       // Per-screen overrides for position and widgets
       // Format: [{ "name": "HDMI-1", "position": "left" }, { "name": "DP-1", "position": "bottom", "widgets": {...} }]
       property list<var> screenOverrides: []
+
+      // Side widget panels (left and/or right)
+      property JsonObject sidePanels
+      sidePanels: JsonObject {
+        property bool leftEnabled: false
+        property bool rightEnabled: false
+        property string widthMode: "auto" // "auto" or "fixed"
+        property int width: 320
+        property int minWidth: 220
+        property int maxWidth: 520
+        property int triggerSize: 2
+        property int hideDelay: 250
+        property int padding: 12
+        property int spacing: 8
+      }
     }
 
     // general

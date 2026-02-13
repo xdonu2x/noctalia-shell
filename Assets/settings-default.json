@@ -65,7 +65,19 @@
         }
       ]
     },
-    "screenOverrides": []
+    "screenOverrides": [],
+    "sidePanels": {
+      "leftEnabled": false,
+      "rightEnabled": false,
+      "widthMode": "auto",
+      "width": 320,
+      "minWidth": 220,
+      "maxWidth": 520,
+      "triggerSize": 2,
+      "hideDelay": 250,
+      "padding": 12,
+      "spacing": 8
+    }
   },
   "general": {
     "avatarImage": "",
