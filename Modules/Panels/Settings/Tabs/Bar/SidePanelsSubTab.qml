@@ -153,7 +153,6 @@ ColumnLayout {
   NSectionEditor {
     sectionName: I18n.tr("positions.left")
     sectionId: "left"
-    barIsVertical: false
     settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Bar/BarWidgetSettingsDialog.qml")
     widgetRegistry: BarWidgetRegistry
     widgetModel: sidePanels.leftWidgets
@@ -170,7 +169,6 @@ ColumnLayout {
   NSectionEditor {
     sectionName: I18n.tr("positions.right")
     sectionId: "right"
-    barIsVertical: false
     settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Bar/BarWidgetSettingsDialog.qml")
     widgetRegistry: BarWidgetRegistry
     widgetModel: sidePanels.rightWidgets
