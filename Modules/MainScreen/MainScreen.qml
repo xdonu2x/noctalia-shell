@@ -128,7 +128,7 @@ PanelWindow {
 
     // Only include regions that are actually needed
     // panelRegions is handled by PanelService, bar is local to this screen
-    regions: [barMaskRegion, backgroundMaskRegion]
+    regions: [barMaskRegion, backgroundMaskRegion, leftSidePanelMaskRegion, rightSidePanelMaskRegion, leftSideTriggerMaskRegion, rightSideTriggerMaskRegion]
 
     // Bar region - subtract bar area from mask (only if bar should be shown on this screen)
     Region {
@@ -198,6 +198,42 @@ PanelWindow {
       height: root.isAnyPanelOpen ? root.height : 0
       intersection: Intersection.Subtract
     }
+
+    Region {
+      id: leftSidePanelMaskRegion
+      x: leftSidePanel.visiblePanel ? leftSidePanel.panelBody.x : 0
+      y: leftSidePanel.visiblePanel ? leftSidePanel.panelBody.y : 0
+      width: leftSidePanel.visiblePanel ? leftSidePanel.panelBody.width : 0
+      height: leftSidePanel.visiblePanel ? leftSidePanel.panelBody.height : 0
+      intersection: Intersection.Subtract
+    }
+
+    Region {
+      id: rightSidePanelMaskRegion
+      x: rightSidePanel.visiblePanel ? rightSidePanel.panelBody.x : 0
+      y: rightSidePanel.visiblePanel ? rightSidePanel.panelBody.y : 0
+      width: rightSidePanel.visiblePanel ? rightSidePanel.panelBody.width : 0
+      height: rightSidePanel.visiblePanel ? rightSidePanel.panelBody.height : 0
+      intersection: Intersection.Subtract
+    }
+
+    Region {
+      id: leftSideTriggerMaskRegion
+      x: leftSidePanel.visiblePanel ? leftSidePanel.triggerZone.x : 0
+      y: leftSidePanel.visiblePanel ? leftSidePanel.triggerZone.y : 0
+      width: leftSidePanel.visiblePanel ? leftSidePanel.triggerZone.width : 0
+      height: leftSidePanel.visiblePanel ? leftSidePanel.triggerZone.height : 0
+      intersection: Intersection.Subtract
+    }
+
+    Region {
+      id: rightSideTriggerMaskRegion
+      x: rightSidePanel.visiblePanel ? rightSidePanel.triggerZone.x : 0
+      y: rightSidePanel.visiblePanel ? rightSidePanel.triggerZone.y : 0
+      width: rightSidePanel.visiblePanel ? rightSidePanel.triggerZone.width : 0
+      height: rightSidePanel.visiblePanel ? rightSidePanel.triggerZone.height : 0
+      intersection: Intersection.Subtract
+    }
   }
 
   // --------------------------------------
@@ -230,6 +266,22 @@ PanelWindow {
                    }
                  }
       z: 0 // Behind panels and bar
+    }
+
+    SideWidgetPanel {
+      id: leftSidePanel
+      screen: root.screen
+      side: "left"
+      anchors.fill: parent
+      z: 20
+    }
+
+    SideWidgetPanel {
+      id: rightSidePanel
+      screen: root.screen
+      side: "right"
+      anchors.fill: parent
+      z: 20
     }
 
     // ---------------------------------------
