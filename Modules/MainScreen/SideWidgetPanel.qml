@@ -22,10 +22,19 @@ Item {
   }
 
   readonly property var panelWidgets: {
-    var widgets = Settings.getBarWidgetsForScreen(screen?.name);
-    if (!widgets)
+    // Depend on revision so this recomputes when settings arrays are mutated
+    var _rev = BarService.widgetsRevision;
+
+    var fromSidePanels = isLeft ? settings?.leftWidgets : settings?.rightWidgets;
+    if (fromSidePanels && fromSidePanels.length !== undefined) {
+      return fromSidePanels;
+    }
+
+    // Backward compatibility: if side panel widgets don't exist, fallback to bar sections
+    var barWidgets = Settings.getBarWidgetsForScreen(screen?.name);
+    if (!barWidgets)
       return [];
-    return isLeft ? (widgets.left || []) : (widgets.right || []);
+    return isLeft ? (barWidgets.left || []) : (barWidgets.right || []);
   }
 
   readonly property real panelPadding: settings?.padding ?? Style.marginM
@@ -49,8 +58,30 @@ Item {
   property alias panelBody: panelBody
   property alias triggerZone: triggerZone
 
-  readonly property real shownX: isLeft ? 0 : (parent ? parent.width - panelBody.width : 0)
-  readonly property real hiddenX: isLeft ? -panelBody.width : (parent ? parent.width : 0)
+  readonly property string barPosition: Settings.getBarPositionForScreen(screen?.name)
+  readonly property bool barShouldShow: {
+    if (!BarService.effectivelyVisible)
+      return false;
+    var monitors = Settings.data.bar.monitors || [];
+    var screenName = screen?.name || "";
+    return monitors.length === 0 || monitors.includes(screenName);
+  }
+  readonly property bool barFloating: Settings.data.bar.floating || false
+  readonly property real barHeight: Style.getBarHeightForScreen(screen?.name)
+  readonly property real barMarginH: barFloating ? Math.floor(Settings.data.bar.marginHorizontal || 0) : 0
+  readonly property real barMarginV: barFloating ? Math.floor(Settings.data.bar.marginVertical || 0) : 0
+
+  // Keep side panel attached to screen/bar layout so it doesn't overlap the bar
+  readonly property real insetTop: (barShouldShow && barPosition === "top") ? (barHeight + barMarginV) : 0
+  readonly property real insetBottom: (barShouldShow && barPosition === "bottom") ? (barHeight + barMarginV) : 0
+  readonly property real insetLeft: (barShouldShow && barPosition === "left") ? (barHeight + barMarginH) : 0
+  readonly property real insetRight: (barShouldShow && barPosition === "right") ? (barHeight + barMarginH) : 0
+
+  readonly property bool attachedToTopBar: insetTop > 0
+  readonly property bool attachedToBottomBar: insetBottom > 0
+
+  readonly property real shownX: isLeft ? insetLeft : (parent ? parent.width - insetRight - panelBody.width : 0)
+  readonly property real hiddenX: isLeft ? (insetLeft - panelBody.width) : (parent ? parent.width - insetRight : 0)
 
   function reveal() {
     if (!visiblePanel)
@@ -109,19 +140,20 @@ Item {
     id: panelBody
     visible: root.visiblePanel
     width: Math.round(root.computedPanelWidth)
-    height: parent ? parent.height : 0
+    height: Math.max(0, (parent ? parent.height : 0) - root.insetTop - root.insetBottom)
     x: root.revealed ? root.shownX : root.hiddenX
-    y: 0
+    y: root.insetTop
 
     color: Qt.alpha(Color.mSurface, 0.96)
     border.color: Color.mOutline
     border.width: 1
     radius: Style.radiusL
 
-    topLeftRadius: root.isLeft ? 0 : radius
-    bottomLeftRadius: root.isLeft ? 0 : radius
-    topRightRadius: root.isRight ? 0 : radius
-    bottomRightRadius: root.isRight ? 0 : radius
+    // Keep screen-edge side flush; flatten corners where attached to top/bottom bar for seamless junction
+    topLeftRadius: root.isLeft || root.attachedToTopBar ? 0 : radius
+    bottomLeftRadius: root.isLeft || root.attachedToBottomBar ? 0 : radius
+    topRightRadius: root.isRight || root.attachedToTopBar ? 0 : radius
+    bottomRightRadius: root.isRight || root.attachedToBottomBar ? 0 : radius
 
     Behavior on x {
       NumberAnimation {

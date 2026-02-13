@@ -267,6 +267,22 @@ Singleton {
         property int hideDelay: 250
         property int padding: 12
         property int spacing: 8
+        property list<var> leftWidgets: [
+          {
+            "id": "Clock"
+          },
+          {
+            "id": "SystemMonitor"
+          }
+        ]
+        property list<var> rightWidgets: [
+          {
+            "id": "Network"
+          },
+          {
+            "id": "Volume"
+          }
+        ]
       }
     }
 

@@ -88,6 +88,98 @@ ColumnLayout {
     }
   }
 
+
+  function _ensureSidePanelWidgets() {
+    if (!Settings.data.bar.sidePanels) {
+      return;
+    }
+    if (!Settings.data.bar.sidePanels.leftWidgets) {
+      Settings.data.bar.sidePanels.leftWidgets = [];
+    }
+    if (!Settings.data.bar.sidePanels.rightWidgets) {
+      Settings.data.bar.sidePanels.rightWidgets = [];
+    }
+  }
+
+  function _addSidePanelWidgetToSection(widgetId, section) {
+    _ensureSidePanelWidgets();
+
+    var newWidget = {
+      "id": widgetId
+    };
+    if (BarWidgetRegistry.widgetHasUserSettings(widgetId)) {
+      var metadata = BarWidgetRegistry.widgetMetadata[widgetId];
+      if (metadata) {
+        Object.keys(metadata).forEach(function (key) {
+          newWidget[key] = metadata[key];
+        });
+      }
+    }
+
+    var key = section + "Widgets";
+    Settings.data.bar.sidePanels[key].push(newWidget);
+    BarService.widgetsRevision++;
+  }
+
+  function _removeSidePanelWidgetFromSection(section, index) {
+    _ensureSidePanelWidgets();
+
+    var key = section + "Widgets";
+    var widgets = Settings.data.bar.sidePanels[key] || [];
+    if (index >= 0 && index < widgets.length) {
+      var newArray = widgets.slice();
+      newArray.splice(index, 1);
+      Settings.data.bar.sidePanels[key] = newArray;
+      BarService.widgetsRevision++;
+    }
+  }
+
+  function _reorderSidePanelWidgetInSection(section, fromIndex, toIndex) {
+    _ensureSidePanelWidgets();
+
+    var key = section + "Widgets";
+    var widgets = Settings.data.bar.sidePanels[key] || [];
+    if (fromIndex >= 0 && fromIndex < widgets.length && toIndex >= 0 && toIndex < widgets.length) {
+      var newArray = widgets.slice();
+      var item = newArray[fromIndex];
+      newArray.splice(fromIndex, 1);
+      newArray.splice(toIndex, 0, item);
+      Settings.data.bar.sidePanels[key] = newArray;
+      BarService.widgetsRevision++;
+    }
+  }
+
+  function _updateSidePanelWidgetSettingsInSection(section, index, settings) {
+    _ensureSidePanelWidgets();
+
+    var key = section + "Widgets";
+    var widgets = Settings.data.bar.sidePanels[key] || [];
+    if (index >= 0 && index < widgets.length) {
+      widgets[index] = settings;
+      Settings.data.bar.sidePanels[key] = widgets.slice();
+    }
+  }
+
+  function _moveSidePanelWidgetBetweenSections(fromSection, index, toSection) {
+    _ensureSidePanelWidgets();
+
+    var fromKey = fromSection + "Widgets";
+    var toKey = toSection + "Widgets";
+    var fromWidgets = Settings.data.bar.sidePanels[fromKey] || [];
+    var toWidgets = Settings.data.bar.sidePanels[toKey] || [];
+
+    if (index >= 0 && index < fromWidgets.length) {
+      var widget = fromWidgets[index];
+      var sourceArray = fromWidgets.slice();
+      sourceArray.splice(index, 1);
+      var targetArray = toWidgets.slice();
+      targetArray.push(widget);
+      Settings.data.bar.sidePanels[fromKey] = sourceArray;
+      Settings.data.bar.sidePanels[toKey] = targetArray;
+      BarService.widgetsRevision++;
+    }
+  }
+
   function getWidgetLocations(widgetId) {
     if (!BarService)
       return [];
@@ -191,6 +283,11 @@ ColumnLayout {
       tabIndex: 2
       checked: subTabBar.currentIndex === 2
     }
+    NTabButton {
+      text: "Side panels"
+      tabIndex: 3
+      checked: subTabBar.currentIndex === 3
+    }
   }
 
   Item {
@@ -215,6 +312,15 @@ ColumnLayout {
     MonitorsSubTab {
       addMonitor: root.addMonitor
       removeMonitor: root.removeMonitor
+    }
+    SidePanelsSubTab {
+      availableWidgets: availableWidgets
+      addWidgetToSection: root._addSidePanelWidgetToSection
+      removeWidgetFromSection: root._removeSidePanelWidgetFromSection
+      reorderWidgetInSection: root._reorderSidePanelWidgetInSection
+      updateWidgetSettingsInSection: root._updateSidePanelWidgetSettingsInSection
+      moveWidgetBetweenSections: root._moveSidePanelWidgetBetweenSections
+      onOpenPluginSettings: manifest => pluginSettingsDialog.openPluginSettings(manifest)
     }
   }
 

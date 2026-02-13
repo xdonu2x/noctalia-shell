@@ -76,7 +76,23 @@
       "triggerSize": 8,
       "hideDelay": 250,
       "padding": 12,
-      "spacing": 8
+      "spacing": 8,
+      "leftWidgets": [
+        {
+          "id": "Clock"
+        },
+        {
+          "id": "SystemMonitor"
+        }
+      ],
+      "rightWidgets": [
+        {
+          "id": "Network"
+        },
+        {
+          "id": "Volume"
+        }
+      ]
     }
   },
   "general": {
