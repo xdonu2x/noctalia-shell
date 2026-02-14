@@ -14,7 +14,6 @@ import qs.Modules.Panels.Settings.Tabs.Display
 import qs.Modules.Panels.Settings.Tabs.Dock
 import qs.Modules.Panels.Settings.Tabs.Hooks
 import qs.Modules.Panels.Settings.Tabs.Launcher
-import qs.Modules.Panels.Settings.Tabs.LockScreen
 import qs.Modules.Panels.Settings.Tabs.Notifications
 import qs.Modules.Panels.Settings.Tabs.Osd
 import qs.Modules.Panels.Settings.Tabs.Plugins
@@ -61,6 +60,8 @@ Item {
   property bool _mouseInitialized: false
 
   readonly property bool panelVeryTransparent: Settings.data.ui.panelBackgroundOpacity <= 0.75
+
+  readonly property url lockScreenTabUrl: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Tabs/LockScreen/LockScreenTab.qml")
 
   onSearchResultsChanged: {
     searchSelectedIndex = 0;
@@ -464,10 +465,6 @@ Item {
     UserInterfaceTab {}
   }
   Component {
-    id: lockScreenTab
-    LockScreenTab {}
-  }
-  Component {
     id: sessionMenuTab
     SessionMenuTab {}
   }
@@ -562,7 +559,7 @@ Item {
             "id": SettingsPanel.Tab.LockScreen,
             "label": "panels.lock-screen.title",
             "icon": "settings-lock-screen",
-            "source": lockScreenTab
+            "sourceUrl": lockScreenTabUrl
           },
           {
             "id": SettingsPanel.Tab.SessionMenu,
@@ -1241,7 +1238,8 @@ Item {
 
                   Loader {
                     active: true
-                    sourceComponent: root.tabsModel[index]?.source
+                    source: root.tabsModel[index]?.sourceUrl || ""
+                    sourceComponent: root.tabsModel[index]?.sourceUrl ? undefined : root.tabsModel[index]?.source
                     width: scrollView.availableWidth
                     onLoaded: {
                       if (item && item.hasOwnProperty("screen")) {
