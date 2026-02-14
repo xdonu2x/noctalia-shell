@@ -239,8 +239,16 @@ Item {
               for (var key in entry) {
                 if (key === "id")
                   continue;
-                if (item.hasOwnProperty(key)) {
+                if (!item.hasOwnProperty(key))
+                  continue;
+
+                // Some widgets expose settings as readonly computed props (ex: displayMode),
+                // so direct assignment can throw. Keep loader resilient and let widgetSettings
+                // drive those values.
+                try {
                   item[key] = entry[key];
+                } catch (e) {
+                  Logger.d("SideWidgetPanel", "Skipping read-only setting", key, "for", widgetId);
                 }
               }
 

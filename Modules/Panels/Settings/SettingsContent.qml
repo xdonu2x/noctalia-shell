@@ -516,7 +516,7 @@ Item {
           {
             "id": SettingsPanel.Tab.SidePanels,
             "label": "Side Panels",
-            "icon": "layout-sidebar-left",
+            "icon": "settings-bar",
             "source": sidePanelsTab
           },
           {
