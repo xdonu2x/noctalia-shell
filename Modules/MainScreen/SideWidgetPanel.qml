@@ -204,7 +204,6 @@ Item {
               if (!item)
                 return;
 
-              item.anchors = undefined;
               item.x = 0;
               item.y = 0;
 
@@ -221,13 +220,22 @@ Item {
               }
 
               if (item.hasOwnProperty("sectionWidgetIndex")) {
-                item.sectionWidgetIndex = index;
+                // Side panels use dedicated widget arrays, so disable bar-index based lookup
+                item.sectionWidgetIndex = -1;
               }
 
               if (item.hasOwnProperty("sectionWidgetsCount")) {
                 item.sectionWidgetsCount = root.panelWidgets.length;
               }
 
+
+              if (item.hasOwnProperty("widgetSettings")) {
+                item.widgetSettings = entry;
+              }
+
+              if (item.hasOwnProperty("widgetMetadata")) {
+                item.widgetMetadata = BarWidgetRegistry.widgetMetadata[widgetId] || {};
+              }
               for (var key in entry) {
                 if (key === "id")
                   continue;

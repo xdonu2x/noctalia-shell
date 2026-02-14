@@ -20,6 +20,7 @@ import qs.Modules.Panels.Settings.Tabs.Osd
 import qs.Modules.Panels.Settings.Tabs.Plugins
 import qs.Modules.Panels.Settings.Tabs.Region
 import qs.Modules.Panels.Settings.Tabs.SessionMenu
+import qs.Modules.Panels.Settings.Tabs.SidePanels
 import qs.Modules.Panels.Settings.Tabs.SystemMonitor
 import qs.Modules.Panels.Settings.Tabs.UserInterface
 import qs.Modules.Panels.Settings.Tabs.Wallpaper
@@ -447,6 +448,10 @@ Item {
     DockTab {}
   }
   Component {
+    id: sidePanelsTab
+    SidePanelsTab {}
+  }
+  Component {
     id: notificationsTab
     NotificationsTab {}
   }
@@ -510,6 +515,12 @@ Item {
             "label": "panels.bar.title",
             "icon": "settings-bar",
             "source": barTab
+          },
+          {
+            "id": SettingsPanel.Tab.SidePanels,
+            "label": "Side Panels",
+            "icon": "layout-sidebar-left",
+            "source": sidePanelsTab
           },
           {
             "id": SettingsPanel.Tab.Dock,

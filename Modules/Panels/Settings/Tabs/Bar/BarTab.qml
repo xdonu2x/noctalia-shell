@@ -283,11 +283,6 @@ ColumnLayout {
       tabIndex: 2
       checked: subTabBar.currentIndex === 2
     }
-    NTabButton {
-      text: "Side panels"
-      tabIndex: 3
-      checked: subTabBar.currentIndex === 3
-    }
   }
 
   Item {
@@ -312,15 +307,6 @@ ColumnLayout {
     MonitorsSubTab {
       addMonitor: root.addMonitor
       removeMonitor: root.removeMonitor
-    }
-    SidePanelsSubTab {
-      availableWidgets: availableWidgets
-      addWidgetToSection: root._addSidePanelWidgetToSection
-      removeWidgetFromSection: root._removeSidePanelWidgetFromSection
-      reorderWidgetInSection: root._reorderSidePanelWidgetInSection
-      updateWidgetSettingsInSection: root._updateSidePanelWidgetSettingsInSection
-      moveWidgetBetweenSections: root._moveSidePanelWidgetBetweenSections
-      onOpenPluginSettings: manifest => pluginSettingsDialog.openPluginSettings(manifest)
     }
   }
 
