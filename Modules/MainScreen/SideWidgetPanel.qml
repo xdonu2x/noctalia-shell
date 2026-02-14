@@ -172,6 +172,18 @@ Item {
     }
   }
 
+
+  function getPanelObject(panelId: string) {
+    return PanelService.getPanel(panelId, screen, true);
+  }
+
+  function getPanelContentComponent(panelId: string) {
+    var panelObj = getPanelObject(panelId);
+    if (panelObj && panelObj.panelContent)
+      return panelObj.panelContent;
+    return null;
+  }
+
   function openPanel(panelId: string) {
     var panel = PanelService.getPanel(panelId, screen, true);
     if (panel && panel.toggle) {
@@ -284,26 +296,48 @@ Item {
         Repeater {
           model: root.panelEntries
 
-          delegate: NButton {
+          delegate: Item {
             required property var modelData
             readonly property var entry: modelData || {}
             readonly property string panelId: entry.id || ""
-            readonly property bool minimal: root.itemStyle === "minimal"
-            readonly property bool outlinedStyle: root.itemStyle === "outline"
-            readonly property color launcherBaseColor: minimal ? "transparent" : Qt.alpha(Color.mSurfaceContainerHighest, 0.7)
+            readonly property var panelObject: root.getPanelObject(panelId)
 
             Layout.fillWidth: true
             Layout.columnSpan: root.layoutMode === "list" ? contentLayout.columns : 1
-            enabled: panelId !== ""
-            text: root.panelName(panelId)
-            icon: "chevron-right"
-            fontSize: Style.fontSizeM
-            outlined: outlinedStyle
-            backgroundColor: outlinedStyle ? Color.mOutline : launcherBaseColor
-            textColor: Color.mOnSurface
-            hoverColor: minimal ? Qt.alpha(Color.mSurfaceContainerHighest, 0.35) : Qt.alpha(Color.mSurfaceContainerHighest, 0.95)
-            textHoverColor: Color.mOnSurface
-            onClicked: root.openPanel(panelId)
+            implicitHeight: embeddedLoader.active && embeddedLoader.item ? embeddedLoader.item.implicitHeight : fallbackButton.implicitHeight
+
+            Loader {
+              id: embeddedLoader
+              anchors.left: parent.left
+              anchors.right: parent.right
+              active: panelId !== ""
+              sourceComponent: root.getPanelContentComponent(panelId)
+
+              onLoaded: {
+                if (!item)
+                  return;
+                if (item.hasOwnProperty("screen"))
+                  item.screen = root.screen;
+                if (item.hasOwnProperty("panelID") && panelObject && panelObject.panelID !== undefined)
+                  item.panelID = panelObject.panelID;
+              }
+            }
+
+            NButton {
+              id: fallbackButton
+              visible: !embeddedLoader.item
+              enabled: panelId !== ""
+              anchors.left: parent.left
+              anchors.right: parent.right
+              text: root.panelName(panelId)
+              icon: "chevron-right"
+              fontSize: Style.fontSizeM
+              backgroundColor: Qt.alpha(Color.mSurfaceContainerHighest, 0.7)
+              hoverColor: Qt.alpha(Color.mSurfaceContainerHighest, 0.95)
+              textColor: Color.mOnSurface
+              textHoverColor: Color.mOnSurface
+              onClicked: root.openPanel(panelId)
+            }
           }
         }
       }
