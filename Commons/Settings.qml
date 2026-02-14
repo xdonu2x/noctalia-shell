@@ -267,20 +267,20 @@ Singleton {
         property int hideDelay: 250
         property int padding: 12
         property int spacing: 8
-        property list<var> leftWidgets: [
+        property list<var> leftPanels: [
           {
-            "id": "Clock"
+            "id": "controlCenterPanel"
           },
           {
-            "id": "SystemMonitor"
+            "id": "notificationHistoryPanel"
           }
         ]
-        property list<var> rightWidgets: [
+        property list<var> rightPanels: [
           {
-            "id": "Network"
+            "id": "networkPanel"
           },
           {
-            "id": "Volume"
+            "id": "sessionMenuPanel"
           }
         ]
       }

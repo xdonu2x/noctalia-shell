@@ -12,11 +12,11 @@ ColumnLayout {
   Layout.fillWidth: true
 
   property var availableWidgets
-  property var addWidgetToSection
-  property var removeWidgetFromSection
-  property var reorderWidgetInSection
-  property var updateWidgetSettingsInSection
-  property var moveWidgetBetweenSections
+  property var addPanelToSection
+  property var removePanelFromSection
+  property var reorderPanelInSection
+  property var updatePanelInSection
+  property var movePanelBetweenSections
 
   signal openPluginSettings(var manifest)
 
@@ -30,7 +30,7 @@ ColumnLayout {
   }
 
   NText {
-    text: "Configure side panels and choose widgets shown on each side."
+    text: "Configure side panels and choose which panels are opened from each side."
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
     color: Color.mOnSurfaceVariant
@@ -52,7 +52,7 @@ ColumnLayout {
 
   NComboBox {
     label: "Panel width mode"
-    description: "Auto fits to widget content or use a fixed width."
+    description: "Auto fits to panel content or use a fixed width."
     model: [
       {"key": "auto", "name": "Auto"},
       {"key": "fixed", "name": "Fixed"}
@@ -153,32 +153,34 @@ ColumnLayout {
   NSectionEditor {
     sectionName: I18n.tr("positions.left")
     sectionId: "left"
-    settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Bar/BarWidgetSettingsDialog.qml")
-    widgetRegistry: BarWidgetRegistry
-    widgetModel: sidePanels.leftWidgets
+    settingsDialogComponent: ""
+    widgetRegistry: null
+    widgetModel: sidePanels.leftPanels
+    availableSections: ["left", "right"]
     sectionIcons: root.getSectionIcons()
     availableWidgets: root.availableWidgets
-    onAddWidget: (widgetId, section) => root.addWidgetToSection(widgetId, section)
-    onRemoveWidget: (section, index) => root.removeWidgetFromSection(section, index)
-    onReorderWidget: (section, fromIndex, toIndex) => root.reorderWidgetInSection(section, fromIndex, toIndex)
-    onUpdateWidgetSettings: (section, index, settings) => root.updateWidgetSettingsInSection(section, index, settings)
-    onMoveWidget: (fromSection, index, toSection) => root.moveWidgetBetweenSections(fromSection, index, toSection)
+    onAddWidget: (panelId, section) => root.addPanelToSection(panelId, section)
+    onRemoveWidget: (section, index) => root.removePanelFromSection(section, index)
+    onReorderWidget: (section, fromIndex, toIndex) => root.reorderPanelInSection(section, fromIndex, toIndex)
+    onUpdateWidgetSettings: (section, index, settings) => root.updatePanelInSection(section, index, settings)
+    onMoveWidget: (fromSection, index, toSection) => root.movePanelBetweenSections(fromSection, index, toSection)
     onOpenPluginSettingsRequested: manifest => root.openPluginSettings(manifest)
   }
 
   NSectionEditor {
     sectionName: I18n.tr("positions.right")
     sectionId: "right"
-    settingsDialogComponent: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Bar/BarWidgetSettingsDialog.qml")
-    widgetRegistry: BarWidgetRegistry
-    widgetModel: sidePanels.rightWidgets
+    settingsDialogComponent: ""
+    widgetRegistry: null
+    widgetModel: sidePanels.rightPanels
+    availableSections: ["left", "right"]
     sectionIcons: root.getSectionIcons()
     availableWidgets: root.availableWidgets
-    onAddWidget: (widgetId, section) => root.addWidgetToSection(widgetId, section)
-    onRemoveWidget: (section, index) => root.removeWidgetFromSection(section, index)
-    onReorderWidget: (section, fromIndex, toIndex) => root.reorderWidgetInSection(section, fromIndex, toIndex)
-    onUpdateWidgetSettings: (section, index, settings) => root.updateWidgetSettingsInSection(section, index, settings)
-    onMoveWidget: (fromSection, index, toSection) => root.moveWidgetBetweenSections(fromSection, index, toSection)
+    onAddWidget: (panelId, section) => root.addPanelToSection(panelId, section)
+    onRemoveWidget: (section, index) => root.removePanelFromSection(section, index)
+    onReorderWidget: (section, fromIndex, toIndex) => root.reorderPanelInSection(section, fromIndex, toIndex)
+    onUpdateWidgetSettings: (section, index, settings) => root.updatePanelInSection(section, index, settings)
+    onMoveWidget: (fromSection, index, toSection) => root.movePanelBetweenSections(fromSection, index, toSection)
     onOpenPluginSettingsRequested: manifest => root.openPluginSettings(manifest)
   }
 }

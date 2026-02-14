@@ -77,20 +77,20 @@
       "hideDelay": 250,
       "padding": 12,
       "spacing": 8,
-      "leftWidgets": [
+      "leftPanels": [
         {
-          "id": "Clock"
+          "id": "controlCenterPanel"
         },
         {
-          "id": "SystemMonitor"
+          "id": "notificationHistoryPanel"
         }
       ],
-      "rightWidgets": [
+      "rightPanels": [
         {
-          "id": "Network"
+          "id": "networkPanel"
         },
         {
-          "id": "Volume"
+          "id": "sessionMenuPanel"
         }
       ]
     }

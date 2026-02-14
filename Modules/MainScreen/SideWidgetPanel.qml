@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.Commons
-import qs.Services.Noctalia
 import qs.Services.UI
+import qs.Widgets
 
 Item {
   id: root
@@ -21,20 +21,21 @@ Item {
     return isLeft ? (settings?.leftEnabled ?? true) : (settings?.rightEnabled ?? true);
   }
 
-  readonly property var panelWidgets: {
-    // Depend on revision so this recomputes when settings arrays are mutated
+  readonly property var panelEntries: {
     var _rev = BarService.widgetsRevision;
 
-    var fromSidePanels = isLeft ? settings?.leftWidgets : settings?.rightWidgets;
+    var fromSidePanels = isLeft ? settings?.leftPanels : settings?.rightPanels;
     if (fromSidePanels && fromSidePanels.length !== undefined) {
       return fromSidePanels;
     }
 
-    // Backward compatibility: if side panel widgets don't exist, fallback to bar sections
-    var barWidgets = Settings.getBarWidgetsForScreen(screen?.name);
-    if (!barWidgets)
-      return [];
-    return isLeft ? (barWidgets.left || []) : (barWidgets.right || []);
+    // Backward compatibility with older settings keys
+    var fromLegacy = isLeft ? settings?.leftWidgets : settings?.rightWidgets;
+    if (fromLegacy && fromLegacy.length !== undefined) {
+      return fromLegacy;
+    }
+
+    return [];
   }
 
   readonly property real panelPadding: settings?.padding ?? Style.marginM
@@ -51,7 +52,7 @@ Item {
     return Math.min(panelMaxWidth, Math.max(panelMinWidth, width));
   }
 
-  readonly property bool visiblePanel: panelEnabled && panelWidgets.length > 0
+  readonly property bool visiblePanel: panelEnabled && panelEntries.length > 0
 
   property bool revealed: false
 
@@ -71,7 +72,6 @@ Item {
   readonly property real barMarginH: barFloating ? Math.floor(Settings.data.bar.marginHorizontal || 0) : 0
   readonly property real barMarginV: barFloating ? Math.floor(Settings.data.bar.marginVertical || 0) : 0
 
-  // Keep side panel attached to screen/bar layout so it doesn't overlap the bar
   readonly property real insetTop: (barShouldShow && barPosition === "top") ? (barHeight + barMarginV) : 0
   readonly property real insetBottom: (barShouldShow && barPosition === "bottom") ? (barHeight + barMarginV) : 0
   readonly property real insetLeft: (barShouldShow && barPosition === "left") ? (barHeight + barMarginH) : 0
@@ -82,6 +82,46 @@ Item {
 
   readonly property real shownX: isLeft ? insetLeft : (parent ? parent.width - insetRight - panelBody.width : 0)
   readonly property real hiddenX: isLeft ? (insetLeft - panelBody.width) : (parent ? parent.width - insetRight : 0)
+
+  function panelName(panelId: string): string {
+    switch (panelId) {
+    case "audioPanel":
+      return I18n.tr("panels.audio.title");
+    case "batteryPanel":
+      return I18n.tr("battery.battery");
+    case "bluetoothPanel":
+      return I18n.tr("common.bluetooth");
+    case "brightnessPanel":
+      return I18n.tr("panels.osd.types-brightness-label");
+    case "clockPanel":
+      return I18n.tr("common.calendar");
+    case "controlCenterPanel":
+      return I18n.tr("panels.control-center.title");
+    case "launcherPanel":
+      return I18n.tr("panels.launcher.title");
+    case "mediaPlayerPanel":
+      return I18n.tr("common.media");
+    case "networkPanel":
+      return I18n.tr("common.network");
+    case "notificationHistoryPanel":
+      return I18n.tr("panels.notifications.history-title");
+    case "sessionMenuPanel":
+      return I18n.tr("session-menu.title");
+    case "settingsPanel":
+      return I18n.tr("panels.general.title");
+    case "wallpaperPanel":
+      return I18n.tr("common.wallpaper");
+    default:
+      return panelId;
+    }
+  }
+
+  function openPanel(panelId: string) {
+    var panel = PanelService.getPanel(panelId, screen, true);
+    if (panel && panel.toggle) {
+      panel.toggle();
+    }
+  }
 
   function reveal() {
     if (!visiblePanel)
@@ -149,7 +189,6 @@ Item {
     border.width: 1
     radius: Style.radiusL
 
-    // Keep screen-edge side flush; flatten corners where attached to top/bottom bar for seamless junction
     topLeftRadius: root.isLeft || root.attachedToTopBar ? 0 : radius
     bottomLeftRadius: root.isLeft || root.attachedToBottomBar ? 0 : radius
     topRightRadius: root.isRight || root.attachedToTopBar ? 0 : radius
@@ -187,79 +226,19 @@ Item {
         spacing: root.panelSpacing
 
         Repeater {
-          model: root.panelWidgets
+          model: root.panelEntries
 
-          delegate: Loader {
-            id: widgetLoader
+          delegate: NButton {
             required property var modelData
-            required property int index
-
             readonly property var entry: modelData || {}
-            readonly property string widgetId: entry.id || ""
+            readonly property string panelId: entry.id || ""
 
-            active: widgetId !== "" && BarWidgetRegistry.hasWidget(widgetId)
-            sourceComponent: active ? BarWidgetRegistry.getWidget(widgetId) : null
-
-            onLoaded: {
-              if (!item)
-                return;
-
-              item.x = 0;
-              item.y = 0;
-
-              if (item.hasOwnProperty("screen")) {
-                item.screen = root.screen;
-              }
-
-              if (item.hasOwnProperty("widgetId")) {
-                item.widgetId = widgetId;
-              }
-
-              if (item.hasOwnProperty("section")) {
-                item.section = root.isLeft ? "left" : "right";
-              }
-
-              if (item.hasOwnProperty("sectionWidgetIndex")) {
-                // Side panels use dedicated widget arrays, so disable bar-index based lookup
-                item.sectionWidgetIndex = -1;
-              }
-
-              if (item.hasOwnProperty("sectionWidgetsCount")) {
-                item.sectionWidgetsCount = root.panelWidgets.length;
-              }
-
-
-              if (item.hasOwnProperty("widgetSettings")) {
-                item.widgetSettings = entry;
-              }
-
-              if (item.hasOwnProperty("widgetMetadata")) {
-                item.widgetMetadata = BarWidgetRegistry.widgetMetadata[widgetId] || {};
-              }
-              for (var key in entry) {
-                if (key === "id")
-                  continue;
-                if (!item.hasOwnProperty(key))
-                  continue;
-
-                // Some widgets expose settings as readonly computed props (ex: displayMode),
-                // so direct assignment can throw. Keep loader resilient and let widgetSettings
-                // drive those values.
-                try {
-                  item[key] = entry[key];
-                } catch (e) {
-                  Logger.d("SideWidgetPanel", "Skipping read-only setting", key, "for", widgetId);
-                }
-              }
-
-              if (BarWidgetRegistry.isPluginWidget(widgetId)) {
-                var pluginId = widgetId.replace("plugin:", "");
-                var api = PluginService.getPluginAPI(pluginId);
-                if (api && item.hasOwnProperty("pluginApi")) {
-                  item.pluginApi = api;
-                }
-              }
-            }
+            Layout.fillWidth: true
+            enabled: panelId !== ""
+            text: root.panelName(panelId)
+            icon: "chevron-right"
+            fontSize: Style.fontSizeM
+            onClicked: root.openPanel(panelId)
           }
         }
       }
