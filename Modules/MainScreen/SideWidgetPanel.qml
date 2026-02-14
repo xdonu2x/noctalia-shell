@@ -289,7 +289,8 @@ Item {
             readonly property var entry: modelData || {}
             readonly property string panelId: entry.id || ""
             readonly property bool minimal: root.itemStyle === "minimal"
-            readonly property bool outlined: root.itemStyle === "outline"
+            readonly property bool outlinedStyle: root.itemStyle === "outline"
+            readonly property color launcherBaseColor: minimal ? "transparent" : Qt.alpha(Color.mSurfaceContainerHighest, 0.7)
 
             Layout.fillWidth: true
             Layout.columnSpan: root.layoutMode === "list" ? contentLayout.columns : 1
@@ -297,10 +298,11 @@ Item {
             text: root.panelName(panelId)
             icon: "chevron-right"
             fontSize: Style.fontSizeM
-            colorBg: minimal ? "transparent" : Qt.alpha(Color.mSurfaceContainerHighest, 0.7)
-            colorBorder: outlined ? Color.mOutline : (minimal ? "transparent" : Qt.alpha(Color.mOutline, 0.35))
-            colorFg: Color.mOnSurface
-            colorBgHover: minimal ? Qt.alpha(Color.mSurfaceContainerHighest, 0.35) : Qt.alpha(Color.mSurfaceContainerHighest, 0.95)
+            outlined: outlinedStyle
+            backgroundColor: outlinedStyle ? Color.mOutline : launcherBaseColor
+            textColor: Color.mOnSurface
+            hoverColor: minimal ? Qt.alpha(Color.mSurfaceContainerHighest, 0.35) : Qt.alpha(Color.mSurfaceContainerHighest, 0.95)
+            textHoverColor: Color.mOnSurface
             onClicked: root.openPanel(panelId)
           }
         }
