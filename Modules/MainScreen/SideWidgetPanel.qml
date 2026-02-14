@@ -21,21 +21,69 @@ Item {
     return isLeft ? (settings?.leftEnabled ?? true) : (settings?.rightEnabled ?? true);
   }
 
+  readonly property string layoutMode: settings?.layoutMode ?? "list" // "list" | "grid"
+  readonly property int gridColumns: Math.max(1, Math.min(4, settings?.gridColumns ?? 2))
+  readonly property string itemStyle: settings?.itemStyle ?? "filled" // "filled" | "outline" | "minimal"
+
+  function normalizePanelId(panelId: string): string {
+    switch (panelId) {
+    case "Audio":
+      return "audioPanel";
+    case "Battery":
+      return "batteryPanel";
+    case "Bluetooth":
+      return "bluetoothPanel";
+    case "Brightness":
+      return "brightnessPanel";
+    case "Clock":
+      return "clockPanel";
+    case "ControlCenter":
+      return "controlCenterPanel";
+    case "Launcher":
+      return "launcherPanel";
+    case "MediaMini":
+      return "mediaPlayerPanel";
+    case "Network":
+      return "networkPanel";
+    case "NotificationHistory":
+      return "notificationHistoryPanel";
+    case "SessionMenu":
+      return "sessionMenuPanel";
+    case "Settings":
+      return "settingsPanel";
+    case "WallpaperSelector":
+      return "wallpaperPanel";
+    default:
+      return panelId;
+    }
+  }
+
   readonly property var panelEntries: {
     var _rev = BarService.widgetsRevision;
 
     var fromSidePanels = isLeft ? settings?.leftPanels : settings?.rightPanels;
+    var sourceEntries = [];
+
     if (fromSidePanels && fromSidePanels.length !== undefined) {
-      return fromSidePanels;
+      sourceEntries = fromSidePanels;
+    } else {
+      // Backward compatibility with older settings keys
+      var fromLegacy = isLeft ? settings?.leftWidgets : settings?.rightWidgets;
+      if (fromLegacy && fromLegacy.length !== undefined)
+        sourceEntries = fromLegacy;
     }
 
-    // Backward compatibility with older settings keys
-    var fromLegacy = isLeft ? settings?.leftWidgets : settings?.rightWidgets;
-    if (fromLegacy && fromLegacy.length !== undefined) {
-      return fromLegacy;
+    var normalized = [];
+    for (var i = 0; i < sourceEntries.length; i++) {
+      var entry = sourceEntries[i] || {};
+      var normalizedId = normalizePanelId(entry.id || "");
+      if (normalizedId === "")
+        continue;
+      normalized.push({
+                        "id": normalizedId
+                      });
     }
-
-    return [];
+    return normalized;
   }
 
   readonly property real panelPadding: settings?.padding ?? Style.marginM
@@ -48,7 +96,7 @@ Item {
   readonly property int configuredWidth: Math.max(panelMinWidth, settings?.width ?? 320)
 
   readonly property real computedPanelWidth: {
-    var width = useAutoWidth ? (contentColumn.implicitWidth + panelPadding * 2) : configuredWidth;
+    var width = useAutoWidth ? (contentLayout.implicitWidth + panelPadding * 2) : configuredWidth;
     return Math.min(panelMaxWidth, Math.max(panelMinWidth, width));
   }
 
@@ -93,6 +141,8 @@ Item {
       return I18n.tr("common.bluetooth");
     case "brightnessPanel":
       return I18n.tr("panels.osd.types-brightness-label");
+    case "changelogPanel":
+      return I18n.tr("panels.changelog.title");
     case "clockPanel":
       return I18n.tr("common.calendar");
     case "controlCenterPanel":
@@ -109,6 +159,12 @@ Item {
       return I18n.tr("session-menu.title");
     case "settingsPanel":
       return I18n.tr("panels.general.title");
+    case "setupWizardPanel":
+      return I18n.tr("setup-wizard.title");
+    case "systemStatsPanel":
+      return I18n.tr("panels.system-monitor.title");
+    case "trayDrawerPanel":
+      return I18n.tr("common.tray");
     case "wallpaperPanel":
       return I18n.tr("common.wallpaper");
     default:
@@ -142,9 +198,8 @@ Item {
   }
 
   onVisiblePanelChanged: {
-    if (!visiblePanel) {
+    if (!visiblePanel)
       concealNow();
-    }
   }
 
   Timer {
@@ -152,9 +207,8 @@ Item {
     interval: hideDelay
     repeat: false
     onTriggered: {
-      if (!triggerZone.containsMouse && !panelMouseArea.containsMouse) {
+      if (!triggerZone.containsMouse && !panelMouseArea.containsMouse)
         root.revealed = false;
-      }
     }
   }
 
@@ -216,14 +270,16 @@ Item {
       anchors.fill: parent
       anchors.margins: root.panelPadding
       contentWidth: width
-      contentHeight: contentColumn.implicitHeight
+      contentHeight: contentLayout.implicitHeight
       clip: true
       interactive: contentHeight > height
 
-      ColumnLayout {
-        id: contentColumn
+      GridLayout {
+        id: contentLayout
         width: flick.width
-        spacing: root.panelSpacing
+        columns: root.layoutMode === "grid" ? root.gridColumns : 1
+        columnSpacing: root.panelSpacing
+        rowSpacing: root.panelSpacing
 
         Repeater {
           model: root.panelEntries
@@ -232,12 +288,19 @@ Item {
             required property var modelData
             readonly property var entry: modelData || {}
             readonly property string panelId: entry.id || ""
+            readonly property bool minimal: root.itemStyle === "minimal"
+            readonly property bool outlined: root.itemStyle === "outline"
 
             Layout.fillWidth: true
+            Layout.columnSpan: root.layoutMode === "list" ? contentLayout.columns : 1
             enabled: panelId !== ""
             text: root.panelName(panelId)
             icon: "chevron-right"
             fontSize: Style.fontSizeM
+            colorBg: minimal ? "transparent" : Qt.alpha(Color.mSurfaceContainerHighest, 0.7)
+            colorBorder: outlined ? Color.mOutline : (minimal ? "transparent" : Qt.alpha(Color.mOutline, 0.35))
+            colorFg: Color.mOnSurface
+            colorBgHover: minimal ? Qt.alpha(Color.mSurfaceContainerHighest, 0.35) : Qt.alpha(Color.mSurfaceContainerHighest, 0.95)
             onClicked: root.openPanel(panelId)
           }
         }

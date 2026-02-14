@@ -10,15 +10,55 @@ ColumnLayout {
   id: root
   spacing: 0
 
+  readonly property var legacyWidgetToPanelMap: ({
+                                                   "Audio": "audioPanel",
+                                                   "Battery": "batteryPanel",
+                                                   "Bluetooth": "bluetoothPanel",
+                                                   "Brightness": "brightnessPanel",
+                                                   "Clock": "clockPanel",
+                                                   "ControlCenter": "controlCenterPanel",
+                                                   "Launcher": "launcherPanel",
+                                                   "MediaMini": "mediaPlayerPanel",
+                                                   "Network": "networkPanel",
+                                                   "NotificationHistory": "notificationHistoryPanel",
+                                                   "SessionMenu": "sessionMenuPanel",
+                                                   "Settings": "settingsPanel",
+                                                   "WallpaperSelector": "wallpaperPanel"
+                                                 })
+
+  function normalizePanelId(id) {
+    return legacyWidgetToPanelMap[id] || id;
+  }
+
+  function normalizePanelEntries(list) {
+    var source = list || [];
+    var normalized = [];
+    for (var i = 0; i < source.length; i++) {
+      var entry = source[i] || {};
+      var id = normalizePanelId(entry.id || "");
+      if (id === "")
+        continue;
+      normalized.push({
+                        "id": id
+                      });
+    }
+    return normalized;
+  }
+
   function _ensureSidePanelLists() {
-    if (!Settings.data.bar.sidePanels) {
+    if (!Settings.data.bar.sidePanels)
       return;
-    }
+
     if (!Settings.data.bar.sidePanels.leftPanels) {
-      Settings.data.bar.sidePanels.leftPanels = [];
+      Settings.data.bar.sidePanels.leftPanels = normalizePanelEntries(Settings.data.bar.sidePanels.leftWidgets || []);
+    } else {
+      Settings.data.bar.sidePanels.leftPanels = normalizePanelEntries(Settings.data.bar.sidePanels.leftPanels);
     }
+
     if (!Settings.data.bar.sidePanels.rightPanels) {
-      Settings.data.bar.sidePanels.rightPanels = [];
+      Settings.data.bar.sidePanels.rightPanels = normalizePanelEntries(Settings.data.bar.sidePanels.rightWidgets || []);
+    } else {
+      Settings.data.bar.sidePanels.rightPanels = normalizePanelEntries(Settings.data.bar.sidePanels.rightPanels);
     }
   }
 
@@ -68,7 +108,9 @@ ColumnLayout {
     var key = section + "Panels";
     var panels = Settings.data.bar.sidePanels[key] || [];
     if (index >= 0 && index < panels.length) {
-      panels[index] = panelEntry;
+      panels[index] = {
+        "id": normalizePanelId((panelEntry || {}).id || "")
+      };
       Settings.data.bar.sidePanels[key] = panels.slice();
     }
   }
@@ -101,6 +143,7 @@ ColumnLayout {
       {"key": "batteryPanel", "name": I18n.tr("battery.battery")},
       {"key": "bluetoothPanel", "name": I18n.tr("common.bluetooth")},
       {"key": "brightnessPanel", "name": I18n.tr("panels.osd.types-brightness-label")},
+      {"key": "changelogPanel", "name": I18n.tr("panels.changelog.title")},
       {"key": "clockPanel", "name": I18n.tr("common.calendar")},
       {"key": "controlCenterPanel", "name": I18n.tr("panels.control-center.title")},
       {"key": "launcherPanel", "name": I18n.tr("panels.launcher.title")},
@@ -109,7 +152,10 @@ ColumnLayout {
       {"key": "notificationHistoryPanel", "name": I18n.tr("panels.notifications.history-title")},
       {"key": "sessionMenuPanel", "name": I18n.tr("session-menu.title")},
       {"key": "settingsPanel", "name": I18n.tr("panels.general.title")},
-      {"key": "wallpaperPanel", "name": I18n.tr("common.wallpaper")},
+      {"key": "setupWizardPanel", "name": I18n.tr("setup-wizard.title")},
+      {"key": "systemStatsPanel", "name": I18n.tr("panels.system-monitor.title")},
+      {"key": "trayDrawerPanel", "name": I18n.tr("common.tray")},
+      {"key": "wallpaperPanel", "name": I18n.tr("common.wallpaper")}
     ];
 
     for (var i = 0; i < panels.length; i++) {
@@ -121,13 +167,9 @@ ColumnLayout {
     id: availablePanels
   }
 
-  Component.onCompleted: updateAvailablePanelsModel()
-
-  Connections {
-    target: BarService
-    function onActiveWidgetsChanged() {
-      updateAvailablePanelsModel();
-    }
+  Component.onCompleted: {
+    _ensureSidePanelLists();
+    updateAvailablePanelsModel();
   }
 
   SidePanelsSubTab {

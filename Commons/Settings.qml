@@ -267,6 +267,9 @@ Singleton {
         property int hideDelay: 250
         property int padding: 12
         property int spacing: 8
+        property string layoutMode: "list"
+        property int gridColumns: 2
+        property string itemStyle: "filled"
         property list<var> leftPanels: [
           {
             "id": "controlCenterPanel"

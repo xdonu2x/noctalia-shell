@@ -53,10 +53,7 @@ ColumnLayout {
   NComboBox {
     label: "Panel width mode"
     description: "Auto fits to panel content or use a fixed width."
-    model: [
-      {"key": "auto", "name": "Auto"},
-      {"key": "fixed", "name": "Fixed"}
-    ]
+    model: [{"key": "auto", "name": "Auto"}, {"key": "fixed", "name": "Fixed"}]
     currentKey: sidePanels.widthMode
     onSelected: key => sidePanels.widthMode = key
   }
@@ -90,6 +87,53 @@ ColumnLayout {
       pointSize: Style.fontSizeM
       color: Color.mOnSurfaceVariant
     }
+  }
+
+  NComboBox {
+    label: "Panel items layout"
+    description: "Choose how panel launchers are arranged inside each side panel."
+    model: [{"key": "list", "name": "List"}, {"key": "grid", "name": "Grid"}]
+    currentKey: sidePanels.layoutMode ?? "list"
+    onSelected: key => sidePanels.layoutMode = key
+  }
+
+  NLabel {
+    label: "Grid columns"
+    description: "Used when layout is set to grid."
+    visible: (sidePanels.layoutMode ?? "list") === "grid"
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Style.marginM
+    visible: (sidePanels.layoutMode ?? "list") === "grid"
+
+    NSlider {
+      id: gridColumnsSlider
+      Layout.fillWidth: true
+      from: 1
+      to: 4
+      stepSize: 1
+      value: sidePanels.gridColumns ?? 2
+      onPressedChanged: {
+        if (!pressed)
+          sidePanels.gridColumns = Math.round(value);
+      }
+    }
+
+    NText {
+      text: Math.round(gridColumnsSlider.value) + " cols"
+      pointSize: Style.fontSizeM
+      color: Color.mOnSurfaceVariant
+    }
+  }
+
+  NComboBox {
+    label: "Panel item style"
+    description: "Visual style for each panel launcher item."
+    model: [{"key": "filled", "name": "Filled"}, {"key": "outline", "name": "Outline"}, {"key": "minimal", "name": "Minimal"}]
+    currentKey: sidePanels.itemStyle ?? "filled"
+    onSelected: key => sidePanels.itemStyle = key
   }
 
   NLabel {
