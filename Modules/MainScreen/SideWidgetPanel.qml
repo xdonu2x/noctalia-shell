@@ -304,7 +304,7 @@ Item {
 
             Layout.fillWidth: true
             Layout.columnSpan: root.layoutMode === "list" ? contentLayout.columns : 1
-            implicitHeight: embeddedLoader.active && embeddedLoader.item ? embeddedLoader.item.implicitHeight : fallbackButton.implicitHeight
+            implicitHeight: embeddedLoader.active && embeddedLoader.item ? ((embeddedLoader.item.contentPreferredHeight !== undefined && embeddedLoader.item.contentPreferredHeight > 0) ? embeddedLoader.item.contentPreferredHeight : Math.max(embeddedLoader.item.implicitHeight || 0, 120 * Style.uiScaleRatio)) : fallbackButton.implicitHeight
 
             Loader {
               id: embeddedLoader
@@ -316,6 +316,26 @@ Item {
               onLoaded: {
                 if (!item)
                   return;
+
+                if (item.anchors && item.anchors.fill !== undefined)
+                  item.anchors.fill = embeddedLoader;
+
+                if (item.hasOwnProperty("width")) {
+                  item.width = Qt.binding(function () {
+                    return embeddedLoader.width;
+                  });
+                }
+
+                if (item.hasOwnProperty("height")) {
+                  item.height = Qt.binding(function () {
+                    if (item.contentPreferredHeight !== undefined && item.contentPreferredHeight > 0)
+                      return item.contentPreferredHeight;
+                    if (item.implicitHeight !== undefined && item.implicitHeight > 0)
+                      return item.implicitHeight;
+                    return 120 * Style.uiScaleRatio;
+                  });
+                }
+
                 if (item.hasOwnProperty("screen"))
                   item.screen = root.screen;
                 if (item.hasOwnProperty("panelID") && panelObject && panelObject.panelID !== undefined)
