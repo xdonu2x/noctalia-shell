@@ -65,7 +65,38 @@
         }
       ]
     },
-    "screenOverrides": []
+    "screenOverrides": [],
+    "sidePanels": {
+      "leftEnabled": true,
+      "rightEnabled": true,
+      "widthMode": "auto",
+      "width": 320,
+      "minWidth": 220,
+      "maxWidth": 520,
+      "triggerSize": 8,
+      "hideDelay": 250,
+      "padding": 12,
+      "spacing": 8,
+      "layoutMode": "list",
+      "gridColumns": 2,
+      "itemStyle": "filled",
+      "leftPanels": [
+        {
+          "id": "controlCenterPanel"
+        },
+        {
+          "id": "notificationHistoryPanel"
+        }
+      ],
+      "rightPanels": [
+        {
+          "id": "networkPanel"
+        },
+        {
+          "id": "sessionMenuPanel"
+        }
+      ]
+    }
   },
   "general": {
     "avatarImage": "",

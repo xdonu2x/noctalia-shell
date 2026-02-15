@@ -73,6 +73,7 @@ SmartPanel {
     About,
     Audio,
     Bar,
+    SidePanels,
     ColorScheme,
     LockScreen,
     ControlCenter,

@@ -14,12 +14,12 @@ import qs.Modules.Panels.Settings.Tabs.Display
 import qs.Modules.Panels.Settings.Tabs.Dock
 import qs.Modules.Panels.Settings.Tabs.Hooks
 import qs.Modules.Panels.Settings.Tabs.Launcher
-import qs.Modules.Panels.Settings.Tabs.LockScreen
 import qs.Modules.Panels.Settings.Tabs.Notifications
 import qs.Modules.Panels.Settings.Tabs.Osd
 import qs.Modules.Panels.Settings.Tabs.Plugins
 import qs.Modules.Panels.Settings.Tabs.Region
 import qs.Modules.Panels.Settings.Tabs.SessionMenu
+import qs.Modules.Panels.Settings.Tabs.SidePanels
 import qs.Modules.Panels.Settings.Tabs.SystemMonitor
 import qs.Modules.Panels.Settings.Tabs.UserInterface
 import qs.Modules.Panels.Settings.Tabs.Wallpaper
@@ -60,6 +60,8 @@ Item {
   property bool _mouseInitialized: false
 
   readonly property bool panelVeryTransparent: Settings.data.ui.panelBackgroundOpacity <= 0.75
+
+  readonly property url lockScreenTabUrl: Qt.resolvedUrl(Quickshell.shellDir + "/Modules/Panels/Settings/Tabs/LockScreen/LockScreenTab.qml")
 
   onSearchResultsChanged: {
     searchSelectedIndex = 0;
@@ -447,6 +449,10 @@ Item {
     DockTab {}
   }
   Component {
+    id: sidePanelsTab
+    SidePanelsTab {}
+  }
+  Component {
     id: notificationsTab
     NotificationsTab {}
   }
@@ -457,10 +463,6 @@ Item {
   Component {
     id: userInterfaceTab
     UserInterfaceTab {}
-  }
-  Component {
-    id: lockScreenTab
-    LockScreenTab {}
   }
   Component {
     id: sessionMenuTab
@@ -512,6 +514,12 @@ Item {
             "source": barTab
           },
           {
+            "id": SettingsPanel.Tab.SidePanels,
+            "label": "Side Panels",
+            "icon": "settings-bar",
+            "source": sidePanelsTab
+          },
+          {
             "id": SettingsPanel.Tab.Dock,
             "label": "panels.dock.title",
             "icon": "settings-dock",
@@ -551,7 +559,7 @@ Item {
             "id": SettingsPanel.Tab.LockScreen,
             "label": "panels.lock-screen.title",
             "icon": "settings-lock-screen",
-            "source": lockScreenTab
+            "sourceUrl": lockScreenTabUrl
           },
           {
             "id": SettingsPanel.Tab.SessionMenu,
@@ -1230,7 +1238,8 @@ Item {
 
                   Loader {
                     active: true
-                    sourceComponent: root.tabsModel[index]?.source
+                    source: root.tabsModel[index]?.sourceUrl || ""
+                    sourceComponent: root.tabsModel[index]?.sourceUrl ? undefined : root.tabsModel[index]?.source
                     width: scrollView.availableWidth
                     onLoaded: {
                       if (item && item.hasOwnProperty("screen")) {
