@@ -103,6 +103,7 @@ Item {
   readonly property bool visiblePanel: panelEnabled && panelEntries.length > 0
 
   property bool revealed: false
+  property int panelLookupRevision: 0
 
   property alias panelBody: panelBody
   property alias triggerZone: triggerZone
@@ -173,17 +174,6 @@ Item {
   }
 
 
-  function getPanelObject(panelId: string) {
-    return PanelService.getPanel(panelId, screen, true);
-  }
-
-  function getPanelContentComponent(panelId: string) {
-    var panelObj = getPanelObject(panelId);
-    if (panelObj && panelObj.panelContent)
-      return panelObj.panelContent;
-    return null;
-  }
-
   function openPanel(panelId: string) {
     var panel = PanelService.getPanel(panelId, screen, true);
     if (panel && panel.toggle) {
@@ -212,6 +202,31 @@ Item {
   onVisiblePanelChanged: {
     if (!visiblePanel)
       concealNow();
+  }
+
+
+  Timer {
+    id: panelResolveTimer
+    interval: 250
+    repeat: true
+    running: root.visiblePanel
+
+    onTriggered: {
+      root.panelLookupRevision++;
+
+      var unresolved = 0;
+      for (var i = 0; i < root.panelEntries.length; i++) {
+        var entry = root.panelEntries[i] || {};
+        var panelId = entry.id || "";
+        if (!panelId)
+          continue;
+        if (!PanelService.getPanel(panelId, root.screen, true))
+          unresolved++;
+      }
+
+      if (unresolved === 0)
+        stop();
+    }
   }
 
   Timer {
@@ -300,7 +315,10 @@ Item {
             required property var modelData
             readonly property var entry: modelData || {}
             readonly property string panelId: entry.id || ""
-            readonly property var panelObject: root.getPanelObject(panelId)
+            readonly property var panelObject: {
+              var _rev = root.panelLookupRevision;
+              return PanelService.getPanel(panelId, root.screen, true);
+            }
 
             Layout.fillWidth: true
             Layout.columnSpan: root.layoutMode === "list" ? contentLayout.columns : 1
@@ -311,7 +329,7 @@ Item {
               anchors.left: parent.left
               anchors.right: parent.right
               active: panelId !== ""
-              sourceComponent: root.getPanelContentComponent(panelId)
+              sourceComponent: panelObject && panelObject.panelContent ? panelObject.panelContent : null
 
               onLoaded: {
                 if (!item)
